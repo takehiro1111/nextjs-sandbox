@@ -1,10 +1,15 @@
-import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create Next App Blog",
+  description: "ブログ記事の一覧が表示される。",
+};
 
 // ダミーデータ
 const articles = [
   { id: "1", title: "タイトル1" },
-  { id: "1", title: "タイトル2" },
-  { id: "1", title: "タイトル3" },
+  { id: "2", title: "タイトル2" },
+  { id: "3", title: "タイトル3" },
 ];
 
 async function fetchArticles() {
