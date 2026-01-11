@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
 }
 // Alternatively, you can use a default export:
 // export default function proxy(request: NextRequest) { ... }
- 
+
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: '/blog/:path*',
