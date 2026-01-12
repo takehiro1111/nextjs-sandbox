@@ -1,0 +1,40 @@
+query GetBook {
+  getBook {
+    title
+    author
+  }
+}
+
+query GetTodos{
+  getTodos {
+    id
+    title
+    completed
+  }
+}
+
+mutation AddTodo($title: String!) {
+  addTodo(title: $title) {
+    title
+  }
+}
+
+mutation UpdateTodo($id: String!, $completed: Boolean!) {
+  updateTodo(id: $id,completed: $completed) {
+    id
+    title
+    completed
+  }
+}
+
+mutation DeleteTodo($id: String!) {
+  deleteTodo(id: $id) {
+    id
+    title
+    completed
+  }
+}
+
+{
+  "id": "1"
+}
