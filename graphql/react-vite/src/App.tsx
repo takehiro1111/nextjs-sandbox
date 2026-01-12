@@ -1,9 +1,24 @@
 import { gql } from "@apollo/client";
 import { useQuery, useMutation } from "@apollo/client/react";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, PlusCircle } from "lucide-react";
+import { Button } from "./components/ui/button";
+import { Checkbox } from "./components/ui/checkbox";
 
 const GET_TODOS = gql`
   query {
     getTodos {
+      id
+      title
+      completed
+    }
+  }
+`;
+
+const ADD_TODO = gql`
+  mutation addTodo($title: String!) {
+    addTodo(title: $title) {
       id
       title
       completed
@@ -17,6 +32,14 @@ const UPDATE_TODO = gql`
       id
       title
       completed
+    }
+  }
+`;
+
+const DELETE_TODO = gql`
+  mutation DeleteTodo($id: String!) {
+    deleteTodo(id: $id) {
+      id
     }
   }
 `;
@@ -36,43 +59,121 @@ function App() {
     fetchPolicy: "network-only",
   });
   const [updateTodo] = useMutation(UPDATE_TODO);
+  const [deleteTodo] = useMutation(DELETE_TODO);
+  const [addTodo] = useMutation(ADD_TODO);
+  const [title, setTitle] = useState("");
 
   const todos = data ? data.getTodos : [];
 
   if (loading) return <p>Loading...</p>;
 
+  const handleAddTodo = async () => {
+    await addTodo({
+      variables: { title },
+      refetchQueries: [{ query: GET_TODOS }],
+    });
+    setTitle("");
+  };
+
+  const handleUpdateTodo = async (
+    id: string,
+    title: string,
+    completed: boolean
+  ) => {
+    await updateTodo({
+      variables: { id, title, completed: !completed },
+      refetchQueries: [{ query: GET_TODOS }],
+    });
+  };
+
+  const handleDeleteTodo = async (id: string) => {
+    await deleteTodo({
+      variables: { id },
+      refetchQueries: [{ query: GET_TODOS }],
+    });
+  };
+
   return (
     <>
-      <div>
-        <h1>TO DO List</h1>
-        <input type="text" placeholder="TODOを追加してください" />
-        <button>追加</button>
-        <ul>
-          {todos.map((todo: Todo) => (
-            <li
-              key={todo.id}
-              style={{
-                textDecoration: todo.completed ? "line-through" : "none",
-              }}
-            >
+      <div className="min-h-screen bg-linear-to-br from-teal-50 to-emerald-100 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden"
+        >
+          <div className="bg-linear-to-r from-teal-400 to-emerald-500 p-6">
+            <h1 className="text-3xl font-bold text-white mb-2">To-Do List</h1>
+          </div>
+          <div className="p-6">
+            <div className="flex mb-4">
               <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() =>
-                  updateTodo({
-                    variables: {
-                      id: todo.id,
-                      title: todo.title,
-                      completed: !todo.completed,
-                    },
-                    refetchQueries: [{ query: GET_TODOS }],
-                  })
-                }
+                type="text"
+                placeholder="タスクを追加"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="grow mr-2 bg-teal-50 border-teal-200 focus:ring-2 focus:ring-teal-300 focus:border-transparent"
               />
-              {todo.title}
-            </li>
-          ))}
-        </ul>
+              <Button
+                onClick={handleAddTodo}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white"
+              >
+                <PlusCircle className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <AnimatePresence>
+              {todos.map((todo: Todo) => (
+                <motion.div
+                  key={todo.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -100 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex items-center mb-4  p-4 rounded-lg shadow-sm ${
+                    todo.completed ? "bg-emerald-100" : "bg-white"
+                  }`}
+                >
+                  <Checkbox
+                    id={`todo-${todo.id}`}
+                    checked={todo.completed}
+                    onCheckedChange={() =>
+                      handleUpdateTodo(todo.id, todo.title, todo.completed)
+                    }
+                    className="mr-3 border-teal-400 text-teal-500"
+                  />
+                  <label
+                    htmlFor={`todo-${todo.id}`}
+                    className={`grow text-lg ${
+                      todo.completed
+                        ? "line-through text-teal-600"
+                        : "text-gray-800"
+                    }`}
+                  >
+                    {todo.title}
+                  </label>
+                  {todo.completed && (
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 ml-2" />
+                  )}
+                  <Button
+                    onClick={() => handleDeleteTodo(todo.id)}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                  >
+                    Delete
+                  </Button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {todos.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-teal-600 mt-6"
+              >
+                タスクがありません
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
       </div>
     </>
   );

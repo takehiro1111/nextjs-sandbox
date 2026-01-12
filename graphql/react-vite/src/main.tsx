@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import { StrictMode } from 'react'
+import "./index.css";
 import App from "./App";
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
